@@ -1,4 +1,3 @@
-
 import pygame
 import random
 import math
@@ -27,6 +26,20 @@ speed = 5
 enemy_radius = 20
 enemy_speed = 2
 
+# XP and Level settings
+level = 1
+xp = 0
+xp_needed = 100
+xp_per_kill = 10
+
+# XP bar settings
+bar_x = 200
+bar_y = 560
+bar_width = 400
+bar_height = 20
+
+font = pygame.font.SysFont(None, 30)
+
 #3 enemies
 enemies = []
 
@@ -47,6 +60,28 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
+        # Press SPACE to kill nearest enemy
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE and enemies:
+
+                nearest = min(
+                    enemies,
+                    key=lambda e: math.hypot(x - e[0], y - e[1])
+                )
+
+                enemies.remove(nearest)
+
+                # Give XP
+                xp += xp_per_kill
+
+                # Check for level up
+                if xp >= xp_needed:
+                    xp -= xp_needed
+                    level += 1
+                    xp_needed += 50
+
+                    print("LEVEL UP!", level)
 
     # Get keyboard input
     keys = pygame.key.get_pressed()
@@ -91,6 +126,26 @@ while running:
         if distance < radius + enemy_radius:
             print("GAME OVER!")
             running = False
+
+    # Calculate XP bar progress
+    xp_percentage = xp / xp_needed
+
+    # Draw empty bar
+    pygame.draw.rect(screen, (0, 0, 0),
+                     (bar_x, bar_y, bar_width, bar_height))
+
+    # Draw filled XP bar
+    pygame.draw.rect(screen, (255, 255, 0),
+                     (bar_x, bar_y, bar_width * xp_percentage, bar_height))
+
+    # Display level and XP
+    level_text = font.render(
+        f"Level {level} - XP: {xp}/{xp_needed}",
+        True,
+        (255, 255, 255)
+    )
+
+    screen.blit(level_text, (bar_x, bar_y - 30))
 
     # Update the display
     pygame.display.flip()
